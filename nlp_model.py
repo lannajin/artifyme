@@ -1,26 +1,25 @@
-import nltk
-import sklearn
+#import nltk
+#import sklearn
 import numpy as np
 import pandas as pd
 import re
 from gensim.models import doc2vec
 import gensim
-import pickle
+#import pickle
 import random
-import concurrent.futures
+#import concurrent.futures
 import os
 
 os.chdir('C:/Users/lannajin/Documents/GitHub/artifyme')
 df = pd.read_csv('surrey-art.csv', encoding='cp1252')    #Surrey Art Data
-#dfb = pd.read_csv('vancouver-art.csv')  #Vancouver Art Data 
+dfb = pd.read_csv('van-art.csv')  #Vancouver Art Data 
 #df = pd.concat([dfa, dfb])
 
 #Remove rows with NaNs for description
 df = df.dropna(subset=['description'])
 #Create id tag for art work (in case there are multiples without data)
-df['id'] = ['id'+str(i) for i in range(0,len(df))]
-#df['id'] = [str(i) for i in range(0,len(df))]
-#df['id'] = range(0, len(df))
+df['id'] = ['pid_'+str(i) for i in range(0,len(df))]
+
 ####################################################
 #   1. Clean-up sentences
 ####################################################
@@ -91,7 +90,7 @@ userVec = model.infer_vector(cI)
 #This method computes cosine similarity between a simple mean of the projection weight vectors of the given docs. Docs may be specified as vectors, integer indexes of trained docvecs, or if the documents were originally presented with string tags, by the corresponding tags.
 #Here, doc is given as infered vector
 output = model.docvecs.most_similar(positive=[userVec], topn=30)
-the_result = pd.DataFrame(output, columns=['id','cosinesim'])
+the_result = pd.DataFrame(output, columns=['id','probability'])
 
 #merge with original data frame
 the_result.merge(df, how='left', on='id')
