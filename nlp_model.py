@@ -11,9 +11,9 @@ import random
 import os
 
 os.chdir('C:/Users/lannajin/Documents/GitHub/artifyme')
-df = pd.read_csv('surrey-art.csv', encoding='cp1252')    #Surrey Art Data
-dfb = pd.read_csv('van-art.csv')  #Vancouver Art Data 
-#df = pd.concat([dfa, dfb])
+#df = pd.read_csv('surrey-art.csv', encoding='cp1252')    #Surrey Art Data
+df = pd.read_csv('van-art.csv')  #Vancouver Art Data 
+
 
 #Remove rows with NaNs for description
 df = df.dropna(subset=['description'])
@@ -33,7 +33,7 @@ def cleanSent(var):
 	return sent
 
 df['Sentence'] = cleanSent(df.description) 
-df['ArtState'] = cleanSent(df.state) 
+df['ArtState'] = cleanSent(df.artist_state) 
 
 #Convert to LabeledSentence object to feed into gensim doc2vec model:
 LabeledSentences = []
@@ -68,13 +68,10 @@ for epoch in range(10):
 
 # store the model to mmap-able files
 model.save('doc2vec_model.doc2vec')
-
+df.to_csv('df_out.csv')
 #################################################
 # PREDICT
 #################################################
-# load the model back
-#model = gensim.models.doc2vec.Doc2Vec.load('doc2vec_model.doc2vec')
-
 userInput = 'Vancouver is beautiful today!'  #Input sentence
 
 def cleanInput(userInput):

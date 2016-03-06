@@ -6,6 +6,7 @@ import numpy as np
 import gensim
 from gensim.models import doc2vec
 
+df = pd.read_csv('df_out.csv')  #Vancouver Art Data 
 model_loaded = gensim.models.doc2vec.Doc2Vec.load('doc2vec_model.doc2vec')
 
 def cleanInput(userInput):
@@ -30,6 +31,11 @@ def cities_output():
 	#Infer a vector for given post-bulk training document. Document should be a list of (word) tokens.
 	userVec = model_loaded.infer_vector(cI) 
 	output = model_loaded.docvecs.most_similar(positive=[userVec], topn=int(num))
-	the_result = pd.DataFrame(output, columns=['Citation','probability'])
+	
+	the_result = pd.DataFrame(output, columns=['id','probability'])
 	the_result['probability'] = [round(probs*100,1) for probs in the_result.probability]
-	return render_template("output.html", id=the_result, sentence = var, num=num)
+	
+	#merge with original data frame
+	out = the_result.merge(df, how='left', on='id')
+	
+	return render_template("output.html", id=out, sentence = var, num=num)
