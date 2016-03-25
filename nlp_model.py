@@ -12,7 +12,7 @@ import os
 
 os.chdir('C:/Users/lannajin/Documents/GitHub/artifyme')
 #df = pd.read_csv('surrey-art.csv', encoding='cp1252')    #Surrey Art Data
-df = pd.read_csv('van-art.csv')  #Vancouver Art Data 
+df = pd.read_csv('van-art.csv', encoding='cp1252')     #Vancouver Art Data 
 
 
 #Remove rows with NaNs for description
@@ -24,12 +24,16 @@ df['id'] = ['pid_'+str(i) for i in range(0,len(df))]
 #   1. Clean-up sentences
 ####################################################
 #Clean References:
+	
 def cleanSent(var):
 	sent = []
 	for i in var:
-		tmp = re.sub("[^a-zA-Z]", " ", i) #Remove non-characters
-		tmp = tmp.lower().split()	#Tokenize sentences: convert to lower case and split them into individual words 
-		sent.append(' '.join(tmp)) #join words back together into string
+		try:
+			tmp = re.sub("[^a-zA-Z]", " ", i) #Remove non-characters
+			tmp = tmp.lower().split()	#Tokenize sentences: convert to lower case and split them into individual words 
+			sent.append(' '.join(tmp)) #join words back together into string
+		except:
+			sent.append(None)
 	return sent
 
 df['Sentence'] = cleanSent(df.description) 
@@ -38,21 +42,29 @@ df['ArtState'] = cleanSent(df.artist_state)
 #Convert to LabeledSentence object to feed into gensim doc2vec model:
 LabeledSentences = []
 for i in range(0,len(df)):
-    LabeledSentences.append(doc2vec.LabeledSentence(df.Sentence[i].split(), df.id[i])
-	LabeledSentences.append(doc2vec.LabeledSentence(df.ArtState[i].split(), df.id[i])
-	)
-#OR, (depending on how labeled sentences need to be put in...)
-LabeledSentences = []
+	try:
+		LabeledSentences.append(doc2vec.LabeledSentence(df.Sentence[i].split(), df.id[i]))
+	except:
+		pass
 for i in range(0,len(df)):
-    LabeledSentences.append(doc2vec.LabeledSentence([df.Sentence[i].split(), df.ArtState[i].split()], df.id[i]))
+	try:
+		LabeledSentences.append(doc2vec.LabeledSentence(df.ArtState[i].split(), df.id[i]))
+	except:
+		pass		
+		
+
+#OR, (depending on how labeled sentences need to be put in...)
+# LabeledSentences = []
+# for i in range(0,len(df)):
+    # LabeledSentences.append(doc2vec.LabeledSentence([df.Sentence[i].split(), df.ArtState[i].split()], df.id[i]))
   
 #https://linanqiu.github.io/2015/05/20/word2vec-sentiment/
 
 ####################################################
 #   2. Doc2Vec Model Training
 ####################################################
-nfeatures = 500
-model = gensim.models.doc2vec.Doc2Vec(workers=1,size=nfeatures, window=10, min_count=1,alpha=0.025, min_alpha=0.025, batch_words=500)
+nfeatures = 300
+model = gensim.models.doc2vec.Doc2Vec(workers = 10, size=nfeatures, window=10, min_count=1,alpha=0.025, min_alpha=0.025)
 #, load_word2vec_format(fname, fvocab=None, binary=False, encoding='utf8', unicode_errors='strict')
 #Build the vocabulary table: digesting all the words and filtering out the unique words, and doing some basic counts on them
 model.build_vocab(LabeledSentences) 
